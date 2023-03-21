@@ -10,7 +10,11 @@ gameover = False
 px = 400
 py = 750
 timer = 0
-direction = [False,False,False]
+LEFT= False
+RIGHT= False
+UP = False
+direction = [LEFT,RIGHT,UP]
+
 
 class alien:
     def __init__(self,xpos,ypos):
@@ -31,7 +35,23 @@ class alien:
 
     def draw(self):
         pygame.draw.rect(screen,(250,250,250),(self.xpos,self.ypos,40,40))
+class bullet:
+    def __init__(self, xpos, ypos):
+        self.xpos = xpos
+        self.ypos = ypos
+        self.isAlive = False
 
+    def move(self, xpos, ypos):
+        if self.isAlive == True:
+            self.ypos -= 5
+        if self.ypos < 0: 
+            self.isAlive == False
+            self.xpos = xpos
+            self.ypos = ypos
+    def draw(self):
+        pygame.draw.rect(screen, (250, 250, 250), (self.xpos, self.ypos, 3, 20))
+
+bullet = bullet(xpos+28, ypos)
 enemy = []
 for i in range(4):
     for j in range(12):
@@ -52,20 +72,21 @@ while gameover != True:
                 direction[0] = True
             if event.key == pygame.K_RIGHT:
                 direction[1] = True
+
         elif event.type == pygame.KEYUP:
-            if event.key == K_LEFT:
+            if event.key == pygame.K_LEFT:
                 direction[0] = False
-            if event.key == K_RIGHT:
+            if event.key == pygame.K_RIGHT:
                 direction[1] = False
 
-        if direction[0] == True:
-            vx = -3 
-        if direction[1] == True:
-            vx = 3 
-        else:
-            vx = 0
+    if direction[0] == True:
+        vx = -3 
+    elif direction[1] == True:
+        vx = 3 
+    else:
+        vx = 0
 
-        px += vx
+    px += vx
 
     for i in range(len(enemy)):
         timer = enemy[i].move(timer)
@@ -73,11 +94,14 @@ while gameover != True:
 
     #render________________________
     screen.fill((0,0,0))
+    pygame.draw.rect(screen,(200,200,100),(px,py, 60, 20))
+
     for i in range(len(enemy)):
         enemy[i].draw()
     
-    pygame.draw.rect(screen,(200,200,100),(px,py, 60, 20))
-
+    
     pygame.display.flip()
 
 pygame.quit()
+
+
