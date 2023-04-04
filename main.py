@@ -1,6 +1,7 @@
 import pygame
 from math import *
 import time
+import random
 pygame.init()  
 pygame.display.set_caption("space invaders")  # sets the window title
 screen = pygame.display.set_mode((1000, 800))  # creates game screen
@@ -14,6 +15,7 @@ LEFT= False
 RIGHT= False
 UP = False
 shoot = False
+lives = 3
 direction = [LEFT,RIGHT,UP]
 
 
@@ -89,7 +91,26 @@ class wall:
     def draw(self):
         if self.numhit < 3:
             pygame.draw.rect(screen,(self.wallcolor[0],self.wallcolor[1],self.wallcolor[2]),(self.xpos,self.ypos, 30,30))
+
+class missile:
+    def __init__(self):
+        self.xpos = -10
+        self.ypos = -10
+        self.isAlive = False
+
+    def move(self):
+        if self.isAlive == True:
+            self.ypos += 5
+        if self.ypos > 800: 
+            self.isAlive = False
+            self.xpos = -10
+            self.ypos = -10
+    def draw(self):
+        pygame.draw.rect(screen, (250, 250, 250), (self.xpos, self.ypos, 3, 20))
 bullet = bullet(px+28, py)
+missilelist = []
+for missiles in range(10):
+    missilelist.append(missile())
 enemy = []
 walls = []
 for i in range(4):
@@ -104,7 +125,7 @@ for i in range(4):
 while gameover != True:
     #physics_______________________________
     clock.tick(60)
-    
+    randnum = random.randrange(100)
     timer += 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -138,6 +159,9 @@ while gameover != True:
     for i in range(len(enemy)):
         timer = enemy[i].move(timer)
 
+    for missiles in range(len(missilelist)):
+        missilelist[missiles].move()
+
     if shoot == True:
         bullet.isAlive = True
 
@@ -159,19 +183,50 @@ while gameover != True:
     else:
         bullet.xpos = px + 28
         bullet.ypos = py
+    if randnum < 2:
+        aliennum = random.randrange(len(enemy))
+        if enemy[aliennum].isAlive == True:
+            for missiles in range(len(missilelist)):
+                if missilelist[missiles].isAlive == False:
+                    missilelist[missiles].isAlive = True
+                    missilelist[missiles].xpos = enemy[randnum].xpos+5
+                    missilelist[missiles].ypos = enemy[randnum].ypos
+                    break
+    for wallnum in range(len(walls)):
+        for missiles in range(len(missilelist)):
+            if missilelist[missiles].isAlive == True:
+                if walls[wallnum].collide(missilelist[missiles].xpos, missilelist[missiles].ypos) == False:
+                    missilelist[missiles].isAlive = False
+                    break
+
+    for missiles in range(len(missilelist)):
+        if missilelist[missiles].isAlive == True:
+            if px < missilelist[missiles].xpos:
+                if py < missilelist[missiles].ypos:
+                    if px + 40 > missilelist[missiles].xpos:
+                        if py + 40 > missilelist[missiles].ypos:
+                            print("player hit")
+                            lives -= 1
+                            missilelist[missiles].isAlive = False
+                            time.sleep(2)
+                            px = 450
+                            
+                            
 
     #render________________________
     screen.fill((0,0,0))
     pygame.draw.rect(screen,(200,200,100),(px,py, 60, 20))
 
+    for i in range(lives):
+        pygame.draw.rect(screen,(255,0,0),(50*i+40,0,30,30))
     for i in range(len(enemy)):
         enemy[i].draw()
     for i in range(len(walls)):
         walls[i].draw()
+    for i in range(len(missilelist)):
+        missilelist[i].draw()
     bullet.draw()
     
     pygame.display.flip()
 
 pygame.quit()
-
-
